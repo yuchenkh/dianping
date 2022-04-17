@@ -3,6 +3,7 @@ package com.example.dianping.utils;
 import com.example.dianping.dto.UserDTO;
 
 public class UserHolder {
+
     private static final ThreadLocal<UserDTO> tl = new ThreadLocal<>();
 
     public static void saveUser(UserDTO user){

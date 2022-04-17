@@ -1,11 +1,11 @@
 package com.example.dianping.controller;
 
-
 import com.example.dianping.dto.LoginFormDTO;
 import com.example.dianping.dto.Result;
 import com.example.dianping.entity.UserInfo;
 import com.example.dianping.service.IUserInfoService;
 import com.example.dianping.service.IUserService;
+import com.example.dianping.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +13,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 /**
- * <p>
- * 前端控制器
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
+ * 用户登录相关方法。最后编辑于：2022-4-17。
+ * @author yuchen
  */
 @Slf4j
 @RestController
@@ -32,22 +28,25 @@ public class UserController {
     private IUserInfoService userInfoService;
 
     /**
-     * 发送手机验证码
+     * 用户手机号登录验证码
+     * @param phone     用户手机号
+     * @param session   该用户对应的 HttpSession，不需要前端手动提交
+     * @return          处理结果
      */
-    @PostMapping("code")
+    @PostMapping("/code")
     public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
-        // TODO 发送短信验证码并保存验证码
-        return Result.fail("功能未完成");
+        return userService.sendCode(phone, session);
     }
 
     /**
-     * 登录功能
-     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
+     * 用户登录（可以是手机验证码登录，也可以是密码登录）。
+     * @param loginForm     登录表单，包含手机号、验证码或密码。
+     * @param session       {@code HttpSession}
+     * @return              处理结果
      */
     @PostMapping("/login")
     public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session){
-        // TODO 实现登录功能
-        return Result.fail("功能未完成");
+        return userService.login(loginForm, session);
     }
 
     /**
@@ -60,10 +59,13 @@ public class UserController {
         return Result.fail("功能未完成");
     }
 
+    /**
+     * 查询用户个人信息。
+     * @return  处理结果
+     */
     @GetMapping("/me")
-    public Result me(){
-        // TODO 获取当前登录的用户并返回
-        return Result.fail("功能未完成");
+    public Result me() {
+        return Result.ok(UserHolder.getUser());         // 这里 UserHolder 中的用户信息是拦截器在请求到达 controller 之前写入的
     }
 
     @GetMapping("/info/{id}")
