@@ -13,9 +13,9 @@ import javax.servlet.http.HttpSession;
  */
 public interface IUserService extends IService<User> {
 
-    // 根据用户提供的手机号和 Session 信息，生成验证码。
-    Result sendCode(String phone, HttpSession session);
+    // 向用户手机发送验证码
+    Result sendCode(String phone);
 
     // 用户登录
-    Result login(LoginFormDTO loginForm, HttpSession session);
+    Result login(LoginFormDTO loginForm);
 }

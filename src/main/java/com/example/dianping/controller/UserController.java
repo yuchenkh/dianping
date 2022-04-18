@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
 
 /**
  * 用户登录相关方法。最后编辑于：2022-4-17。
@@ -30,23 +29,21 @@ public class UserController {
     /**
      * 用户手机号登录验证码
      * @param phone     用户手机号
-     * @param session   该用户对应的 HttpSession，不需要前端手动提交
      * @return          处理结果
      */
     @PostMapping("/code")
-    public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
-        return userService.sendCode(phone, session);
+    public Result sendCode(@RequestParam("phone") String phone) {
+        return userService.sendCode(phone);
     }
 
     /**
      * 用户登录（可以是手机验证码登录，也可以是密码登录）。
      * @param loginForm     登录表单，包含手机号、验证码或密码。
-     * @param session       {@code HttpSession}
      * @return              处理结果
      */
     @PostMapping("/login")
-    public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session){
-        return userService.login(loginForm, session);
+    public Result login(@RequestBody LoginFormDTO loginForm){
+        return userService.login(loginForm);
     }
 
     /**
@@ -61,6 +58,9 @@ public class UserController {
 
     /**
      * 查询用户个人信息。
+     * 对这个接口的请求会被拦截器拦截，所以这里不用管登录状态的校验工作。
+     * 如果用户已经登录，相应 ThreadLocal 中会有用户信息，所以可以直接到 UserHolder 中取。
+     *
      * @return  处理结果
      */
     @GetMapping("/me")

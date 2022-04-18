@@ -1,9 +1,18 @@
 package com.example.dianping.utils;
 
 public class RedisConstants {
-    public static final String LOGIN_CODE_KEY = "login:code:";
-    public static final Long LOGIN_CODE_TTL = 2L;
-    public static final String LOGIN_USER_KEY = "login:token:";
+
+    // Redis 中，手机号登录验证码的 key 前缀
+    public static final String PIN_KEY_PREFIX = "dp:login:pin:";
+
+    public static final String USER_TOKEN_PREFIX = "dp:login:token:";
+
+    // 用户登录验证码过期时间
+    public static final Long PIN_TTL = 2L;
+
+    // 用户 token 过期时间，代表一个 session
+    public static final Long USER_TOKEN_TTL = 30L;
+
     public static final Long LOGIN_USER_TTL = 36000L;
 
     public static final Long CACHE_NULL_TTL = 2L;
