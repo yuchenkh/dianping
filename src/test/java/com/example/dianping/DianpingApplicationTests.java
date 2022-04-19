@@ -19,4 +19,11 @@ class DianpingApplicationTests {
         Boolean result = redisTemplate.delete("123");
         System.out.println(result);
     }
+
+    // 查询不存在的 key
+    @Test
+    void queryKeyNotExisted() {
+        String s = redisTemplate.opsForValue().get("aahahha");
+        System.out.println(s);
+    }
 }

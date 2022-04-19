@@ -14,8 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
-import static com.example.dianping.utils.RedisConstants.SHOP_CACHE_TTL;
-import static com.example.dianping.utils.RedisConstants.SHOP_KEY_PREFIX;
+import static com.example.dianping.utils.RedisConstants.*;
 
 /**
  * 商户相关服务实现类。最后编辑于：2022-4-19。
@@ -40,13 +39,23 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         if (StrUtil.isNotEmpty(shopJson)) {
             log.debug("商户 " + id + " 在 Redis 中命中。");
             return JSONUtil.toBean(shopJson, Shop.class);
+        } else if (shopJson != null) {
+            // 空字符串，说明 Redis 和 MySQL 中都没有该记录
+            log.debug("商户 " + id + " 在 Redis 中命中，是空值。");
+            return null;
         }
+
         // Redis 没有缓存，则去 MySQL 中查询
         Shop shop = getById(id);
         if (shop != null) {
             log.debug("商户 " + id + " 从 MySQL 中查询，并写入 Redis。");
             redisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop));         // 将商户信息缓存至 Redis
             redisTemplate.expire(key, Duration.ofMinutes(SHOP_CACHE_TTL));            // 设置缓存过期时间
+        } else {
+            // MySQL 中也没有相应记录，会有缓存穿透的可能
+            log.debug("商户 " + id + " 在 Redis 和 MySQL 均不存在，向 Redis 缓存空值防止缓存穿透。");
+            redisTemplate.opsForValue().set(key, "");       // 缓存 null 值
+            redisTemplate.expire(key, Duration.ofMinutes(NULL_CACHE_TTL));
         }
 
         return shop;

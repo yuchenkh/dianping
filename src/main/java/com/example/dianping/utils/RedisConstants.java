@@ -17,6 +17,7 @@ public class RedisConstants {
     // 商户信息缓存相关
     public static final String SHOP_KEY_PREFIX = "dp:cache:shop:";
     public static final Long SHOP_CACHE_TTL = 30L;
+    public static final Long NULL_CACHE_TTL = 2L;
 
     // 商户类别相关
     public static final String SHOP_TYPES_KEY = "dp:cache:shop-types";
