@@ -1,31 +1,23 @@
 package com.example.dianping.utils;
 
+/**
+ * Redis 相关常量。最后编辑于：2022-4-18。
+ * @author yuchen
+ */
 public class RedisConstants {
 
-    // Redis 中，手机号登录验证码的 key 前缀
+    // 手机登录验证码相关
     public static final String PIN_KEY_PREFIX = "dp:login:pin:";
-
-    public static final String USER_TOKEN_PREFIX = "dp:login:token:";
-
-    // 用户登录验证码过期时间
     public static final Long PIN_TTL = 2L;
 
-    // 用户 token 过期时间，代表一个 session
+    // 用户 token 相关
+    public static final String USER_TOKEN_PREFIX = "dp:login:token:";
     public static final Long USER_TOKEN_TTL = 30L;
 
-    public static final Long LOGIN_USER_TTL = 36000L;
+    // 商户信息缓存相关
+    public static final String SHOP_KEY_PREFIX = "dp:cache:shop:";
+    public static final Long SHOP_CACHE_TTL = 30L;
 
-    public static final Long CACHE_NULL_TTL = 2L;
-
-    public static final Long CACHE_SHOP_TTL = 30L;
-    public static final String CACHE_SHOP_KEY = "cache:shop:";
-
-    public static final String LOCK_SHOP_KEY = "lock:shop:";
-    public static final Long LOCK_SHOP_TTL = 10L;
-
-    public static final String SECKILL_STOCK_KEY = "seckill:stock:";
-    public static final String BLOG_LIKED_KEY = "blog:liked:";
-    public static final String FEED_KEY = "feed:";
-    public static final String SHOP_GEO_KEY = "shop:geo:";
-    public static final String USER_SIGN_KEY = "sign:";
+    // 商户类别相关
+    public static final String SHOP_TYPES_KEY = "dp:cache:shop-types";
 }

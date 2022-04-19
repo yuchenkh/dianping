@@ -26,4 +26,5 @@ mybatis-plus:
 
 logging:
   level:
-    com.example.dianping: debug
+    com.example.dianping.controller: debug
+    com.example.dianping.service: debug

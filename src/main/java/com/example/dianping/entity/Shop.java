@@ -12,12 +12,8 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * <p>
- * 
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
+ * 商户实体。最后编辑于：2022-4-18。
+ * @author yuchen
  */
 @Data
 @EqualsAndHashCode(callSuper = false)

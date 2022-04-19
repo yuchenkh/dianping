@@ -6,25 +6,34 @@ import com.example.dianping.dto.Result;
 import com.example.dianping.entity.Shop;
 import com.example.dianping.utils.SystemConstants;
 import com.example.dianping.service.IShopService;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 
+/**
+ * 商户 controller。最后编辑于：2022-4-19。
+ * @author yuchen
+ */
 @RestController
+@AllArgsConstructor
 @RequestMapping("/shop")
 public class ShopController {
 
-    @Resource
-    public IShopService shopService;
+    private final IShopService shopService;
 
     /**
-     * 根据id查询商铺信息
-     * @param id 商铺id
-     * @return 商铺详情数据
+     * 根据 ID 查询商铺信息
+     * @param id    商铺 ID
+     * @return      商铺详情数据
      */
     @GetMapping("/{id}")
     public Result queryShopById(@PathVariable("id") Long id) {
-        return Result.ok(shopService.getById(id));
+        Shop shop = shopService.shopById(id);
+        if (shop == null) {
+            return Result.fail("商户不存在");
+        } else {
+            return Result.ok(shop);
+        }
     }
 
     /**
@@ -47,9 +56,7 @@ public class ShopController {
      */
     @PutMapping
     public Result updateShop(@RequestBody Shop shop) {
-        // 写入数据库
-        shopService.updateById(shop);
-        return Result.ok();
+        return shopService.updateShop(shop);
     }
 
     /**
