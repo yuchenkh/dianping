@@ -12,11 +12,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.util.Map;
 
-import static com.example.dianping.utils.RedisConstants.USER_TOKEN_PREFIX;
+import static com.example.dianping.utils.RedisConstants.LOGGED_IN_USER_PREFIX;
 
 /**
  * 最外层的拦截器，拦截对后端接口的所有请求，不校验登录状态，若是有 token 则刷新 token 有效期。
- * 最后编辑于：2022-4-18。
+ * 最后编辑于：2022-4-25。
  * @author yuchen
  */
 public class AccessInterceptor implements HandlerInterceptor {
@@ -39,10 +39,10 @@ public class AccessInterceptor implements HandlerInterceptor {
         }
         // 根据用户 token 在 Redis 中查询相关记录
         // 如果存在记录则说明用户已登录，把用户信息存到 ThreadLocal 中，并刷新
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(USER_TOKEN_PREFIX + token))) {
-            Map<Object, Object> user = redisTemplate.opsForHash().entries(USER_TOKEN_PREFIX + token);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(LOGGED_IN_USER_PREFIX + token))) {
+            Map<Object, Object> user = redisTemplate.opsForHash().entries(LOGGED_IN_USER_PREFIX + token);
             UserHolder.saveUser(BeanUtil.fillBeanWithMap(user, new UserDTO(), false));
-            redisTemplate.expire(USER_TOKEN_PREFIX + token, Duration.ofMinutes(30));
+            redisTemplate.expire(LOGGED_IN_USER_PREFIX + token, Duration.ofMinutes(30));
         }
 
         return true;

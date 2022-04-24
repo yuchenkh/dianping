@@ -1,6 +1,7 @@
 package com.example.dianping;
 
 import com.example.dianping.utils.UIDGenerator;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,13 +11,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SpringBootTest
+@Slf4j
 public class VoucherTests {
 
     @Autowired
     UIDGenerator uidGenerator;
 
     // 创建一个有 500 个线程的线程池，用于测试 UID 的生成
-    private ExecutorService execService = Executors.newFixedThreadPool(50);
+    private final ExecutorService execService = Executors.newFixedThreadPool(50);
 
     // 生成一个 UID
     @Test
@@ -49,5 +51,13 @@ public class VoucherTests {
     void currentTime() {
         long l = System.currentTimeMillis();
         System.out.println(l);
+    }
+
+    @Test
+    void logging() {
+        String user = "yuchen";
+        String voucherId = "12";
+        log.debug("用户 {} 成功购买 {} 号优惠券一张", user, voucherId);
+        log.debug("你好");
     }
 }

@@ -49,5 +49,4 @@ public class VoucherController {
        return voucherService.queryVoucherOfShop(shopId);
     }
 
-
 }

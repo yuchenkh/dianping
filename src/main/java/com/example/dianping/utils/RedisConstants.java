@@ -1,7 +1,7 @@
 package com.example.dianping.utils;
 
 /**
- * Redis 相关常量。最后编辑于：2022-4-21。
+ * Redis 相关常量。最后编辑于：2022-4-25。
  * @author yuchen
  */
 public class RedisConstants {
@@ -10,9 +10,9 @@ public class RedisConstants {
     public static final String PIN_KEY_PREFIX = "dp:login:pin:";
     public static final Long PIN_TTL = 2L;
 
-    // 用户 token 相关
-    public static final String USER_TOKEN_PREFIX = "dp:login:token:";
-    public static final Long USER_TOKEN_TTL = 30L;
+    // 已登录用户相关
+    public static final String LOGGED_IN_USER_PREFIX = "dp:logged-in-user:";
+    public static final Long LOGGED_IN_USER_TTL = 30L;
 
     // 商户信息缓存相关
     public static final String SHOP_KEY_PREFIX = "dp:cache:shop:";
