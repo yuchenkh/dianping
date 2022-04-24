@@ -2,10 +2,10 @@ package com.example.dianping.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.dianping.dto.Result;
-import com.example.dianping.entity.SeckillVoucher;
+import com.example.dianping.entity.LimitedVoucher;
 import com.example.dianping.entity.Voucher;
 import com.example.dianping.mapper.VoucherMapper;
-import com.example.dianping.service.ISeckillVoucherService;
+import com.example.dianping.service.ILimitedVoucherService;
 import com.example.dianping.service.IVoucherService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,19 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.List;
 
-/**
- * <p>
- *  服务实现类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
 @Service
 public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> implements IVoucherService {
 
     @Resource
-    private ISeckillVoucherService seckillVoucherService;
+    private ILimitedVoucherService limitedVoucherService;
 
     @Override
     public Result queryVoucherOfShop(Long shopId) {
@@ -37,15 +29,16 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
 
     @Override
     @Transactional
-    public void addSeckillVoucher(Voucher voucher) {
-        // 保存优惠券
+    public void addLimitedVoucher(Voucher voucher) {
+        // 保存到 Voucher 表
         save(voucher);
-        // 保存秒杀信息
-        SeckillVoucher seckillVoucher = new SeckillVoucher();
-        seckillVoucher.setVoucherId(voucher.getId());
-        seckillVoucher.setStock(voucher.getStock());
-        seckillVoucher.setBeginTime(voucher.getBeginTime());
-        seckillVoucher.setEndTime(voucher.getEndTime());
-        seckillVoucherService.save(seckillVoucher);
+
+        // 附加信息保存到 LimitedVoucher 表
+        LimitedVoucher limitedVoucher = new LimitedVoucher();
+        limitedVoucher.setVoucherId(voucher.getId());
+        limitedVoucher.setStock(voucher.getStock());
+        limitedVoucher.setBeginTime(voucher.getBeginTime());
+        limitedVoucher.setEndTime(voucher.getEndTime());
+        limitedVoucherService.save(limitedVoucher);
     }
 }

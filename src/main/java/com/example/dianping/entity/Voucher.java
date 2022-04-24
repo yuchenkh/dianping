@@ -11,14 +11,6 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * <p>
- * 
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
@@ -69,37 +61,36 @@ public class Voucher implements Serializable {
     private Integer type;
 
     /**
-     * 优惠券类型
+     * 状态（上架、下架、过期）
      */
     private Integer status;
-    /**
-     * 库存
-     */
-    @TableField(exist = false)
-    private Integer stock;
-
-    /**
-     * 生效时间
-     */
-    @TableField(exist = false)
-    private LocalDateTime beginTime;
-
-    /**
-     * 失效时间
-     */
-    @TableField(exist = false)
-    private LocalDateTime endTime;
 
     /**
      * 创建时间
      */
     private LocalDateTime createTime;
 
-
     /**
      * 更新时间
      */
     private LocalDateTime updateTime;
 
+    /**
+     * 库存，秒杀券的附加信息
+     */
+    @TableField(exist = false)
+    private Integer stock;
+
+    /**
+     * 秒杀券开放购买时间，秒杀券的附加信息
+     */
+    @TableField(exist = false)
+    private LocalDateTime beginTime;
+
+    /**
+     * 秒杀券结束购买时间，秒杀券的附加信息
+     */
+    @TableField(exist = false)
+    private LocalDateTime endTime;
 
 }
