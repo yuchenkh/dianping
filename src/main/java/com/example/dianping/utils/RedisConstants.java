@@ -24,4 +24,7 @@ public class RedisConstants {
 
     // 商户类别相关
     public static final String SHOP_TYPES_KEY = "dp:cache:shop-types";
+
+    // 分布式锁相关
+    public static final String LOCK_KEY_PREFIX = "dp:lock:";
 }
