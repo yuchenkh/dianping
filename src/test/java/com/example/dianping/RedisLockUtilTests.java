@@ -17,12 +17,11 @@ public class RedisLockUtilTests {
 
     @Test
     void getLock() {
-        boolean gotLock = RedisLockUtil.tryLock("test-key", 100);
-        System.out.println(gotLock);
+        System.out.println(RedisLockUtil.tryLock("test-key", 100));
     }
 
     @Test
     void releaseLock() {
-        RedisLockUtil.releaseLock("test-key");
+        RedisLockUtil.releaseLock("test-key", "dae696c739e84be29be5ab12271ed60f-1");
     }
 }

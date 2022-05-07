@@ -60,21 +60,25 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         return createOrder(voucherId, userId);
     }
 
+
     /**
-     * 根据用户 ID 和优惠券 ID 查询单号，如果该用户没有购买过该优惠券，则减去库存并下单。
+     * 指定用户和优惠券，创建订单。需先查询该用户对该优惠券的购买记录，如未购买过，则减去库存并下单，否则下单失败。
      * @param voucherId 优惠券 ID
+     * @param userId    用户 ID
      */
     @Transactional
     public Result createOrder(Long voucherId, Long userId) {
 
         // 获取分布式锁，让相同 userId 和 voucherId 的线程串行执行下面的逻辑
         String key = LOCK_KEY_PREFIX + "order:v" + voucherId + ":u" + userId;         // 针对于「查询某一用户对某一优惠券所下过的订单」这一操作，申请的锁的 key
-        boolean gotLock = RedisLockUtil.tryLock(key, 100);
-        if (!gotLock) {
+        String lockValue = RedisLockUtil.tryLock(key, 100);
+        if (lockValue == null) {
             return Result.fail("请勿重复下单");          // 获取锁失败则说明此时此刻还有一个线程（对应该用户）在对同一优惠券下单
         }
-        log.debug("当前线程获取分布式锁成功，在 Redis 中的 key 是：{}。", key);
+        log.debug("当前线程获取分布式锁成功，在 Redis 中的 key 是：{}，value 是 {}", key, lockValue);
+
         try {
+            // 在 MySQL 查询该用户购买该优惠券的订单数，这一步骤是判断用户能否去尝试减库存的关卡。
             Long count = query().eq("user_id", userId)
                     .eq("voucher_id", voucherId)
                     .count();
@@ -91,23 +95,20 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                 log.debug("{} 号用户尝试下单，但是库存不足", userId);
                 return Result.fail("库存不足");
             }
+
+            // 在 MySQL 中创建订单
+            VoucherOrder order = new VoucherOrder();
+            Long uid = uidGenerator.nextId("order");        // 订单分配到的 ID
+            order.setId(uid);
+            order.setVoucherId(voucherId);
+            order.setPayTime(LocalDateTime.now());
+            order.setUserId(userId);          // 用户信息到当前线程关联的 UserHolder 中取
+            save(order);
+            log.debug("用户 {} 成功购买了一张 {} 号优惠券，订单号：{}", userId, voucherId, uid);
+
+            return Result.ok(uid);
         } finally {
-            log.debug("操作完成，现在释放锁。");
-            RedisLockUtil.releaseLock(key);
+            RedisLockUtil.releaseLock(key, lockValue);
         }
-
-        // 创建订单
-        VoucherOrder order = new VoucherOrder();
-        Long uid = uidGenerator.nextId("order");        // 订单分配到的 ID
-        order.setId(uid);
-        order.setVoucherId(voucherId);
-        order.setPayTime(LocalDateTime.now());
-
-        order.setUserId(userId);          // 用户信息到当前线程关联的 UserHolder 中取
-        save(order);
-        log.debug("用户 {} 成功购买了一张 {} 号优惠券，订单号：{}", userId, voucherId, uid);
-
-        return Result.ok(uid);
-
     }
 }

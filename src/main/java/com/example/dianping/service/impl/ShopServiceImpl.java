@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.example.dianping.utils.RedisConstants.*;
 
@@ -33,7 +34,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     private final StringRedisTemplate redisTemplate;
 
     /**
-     * 用于热点 key 的刷新
+     * 线程池，用于热点 key 的刷新
      */
     private static final ExecutorService HOT_KEY_REFRESHER = Executors.newFixedThreadPool(5);
 
@@ -156,7 +157,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             log.debug("命中热点商户 " + id + " 在 Redis 中的缓存。");
             return shop;
         }
-        // 热点 key 已经过期
+        // 热点 key 已经过期，向线程池提交刷新缓存的任务，自己则直接返回过时的数据
         log.debug("命中热点商户 " + id + " 在 Redis 中的过期缓存，同时尝试获取互斥锁以开启新线程刷新缓存。");
         boolean gotLock = getLockOnWritingCache(id);
         if (gotLock) {
@@ -202,8 +203,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
      */
     private boolean getLockOnWritingCache(Long id) {
         String key = SHOP_LOCK_KEY_PREFIX + id;
-        Boolean result = redisTemplate.opsForValue().setIfAbsent(key, "1");
-        redisTemplate.expire(key, Duration.ofSeconds(SHOP_LOCK_TTL));       // 设置锁的过期时间：一秒
+        Boolean result = redisTemplate.opsForValue().setIfAbsent(key, "1", SHOP_LOCK_TTL, TimeUnit.SECONDS);
         return BooleanUtil.isTrue(result);
     }
 

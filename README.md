@@ -7,10 +7,9 @@
   * 手机号登录
   * 基于 Session 和拦截器的登录状态校验
 
-- [ ] 用户登录
-- [ ] 商户查询缓存
+- [x] 用户登录
+- [x] 商户查询缓存
 - [ ] 优惠券秒杀
-- [ ] 分布式锁
 - [ ] 消息队列
 - [ ] 达人探店
 - [ ] 好友关注
@@ -154,3 +153,6 @@ limitedVoucherService.update()
 不同实现方式的对比，可以自己分析一下。
 
 [参考文章](https://redis.com/ebook/part-2-core-concepts/chapter-6-application-components-in-redis/6-2-distributed-locking/)
+
+具体地，我们使用 Redis 中的一条记录作为锁，key 为锁的标识，value 为持有这把锁的线程标识。解锁时需先校验锁的持有人，防止误删。
+同时，将解锁操作放在 **Lua 脚本**中执行以确保其原子性，避免线程安全问题。
