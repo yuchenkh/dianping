@@ -41,9 +41,9 @@
 
 ### 使用拦截器校验用户登录状态
 这里使用的拦截器基于 Spring MVC 提供的 [HandlerInterceptor](https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-handlermapping-interceptor)
-，我们定义了两个拦截器：
-1. `AccessInterceptor`：拦截对所有后端接口的请求，如果带有合法 token 则刷新其过期时间，否则放行到下一拦截器。
-2. `LoginInterceptor`：拦截对需要登录的接口的请求，避免每个功能都得单独校验用户的登录状态。如果未登录则不予放行。
+接口。我们定义了两个拦截器：
+1. `UserBindingInterceptor`：拦截对所有后端接口的请求，如果带有合法 token 则将相应的用户信息注入到当前线程，刷新 Redis 中登录用户记录的过期时间，否则放行到下一拦截器。
+2. `LoginCheckInterceptor`：拦截对需要登录的接口的请求，避免每个功能都得单独校验用户的登录状态。如果未登录则不予放行。
 
 这里同时用到了 `ThreadLocal` 类，属于 Java 并发的知识。
 

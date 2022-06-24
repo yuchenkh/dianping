@@ -14,6 +14,7 @@ import com.example.dianping.mapper.UserMapper;
 import com.example.dianping.service.IUserService;
 import com.example.dianping.utils.RegexUtils;
 import com.example.dianping.utils.SystemConstants;
+import com.example.dianping.utils.interceptor.UserBindingInterceptor;
 import lombok.AllArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -133,7 +134,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     /**
      * <p>将指定手机号对应用户的 {@link UserDTO} 信息缓存至 Redis，代表该用户处于已登录状态，同时返回一个随机 token，该 token 只对应于这次登录。</p>
      * <p>缓存的用户信息一方面供拦截器判定用户登录状态使用，Redis 中有用户 token 对应的用户信息时，即说明该用户目前是已登录状态；
-     * 另一方面，已登录用户每次请求接口时，我们定义的 {@link com.example.dianping.utils.interceptor.AccessInterceptor} 拦截器会将 Redis 中缓存的用户信息保存至当前线程的 ThreadLocal 中，供 `/user/me` 等 endpoint 使用。</p>
+     * 另一方面，已登录用户每次请求接口时，我们定义的 {@link UserBindingInterceptor} 拦截器会将 Redis 中缓存的用户信息保存至当前线程的 ThreadLocal 中，供 `/user/me` 等 endpoint 使用。</p>
      *
      *
      * @param phone     用户手机号
