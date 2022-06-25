@@ -33,7 +33,7 @@ public class RedisLockUtil {
     }
 
     /**
-     * 尝试获取分布式锁，提供这个锁在 Redis 中的 key 以及过期时间。如果获取锁成功，则生成一个随机的 value 返回，用于后期判定锁的归属线程。
+     * 尝试获取分布式锁，提供这个锁在 Redis 中的 key 以及过期时间。如果获取锁成功，则生成一个随机的 value 返回，用于解锁时校验。
      * @param key       代表这把锁的 key
      * @param timeout   key 的过期时间
      * @return          锁在 Redis 中的值

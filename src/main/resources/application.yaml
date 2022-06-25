@@ -28,3 +28,8 @@ logging:
   level:
     com.example.dianping.controller: debug
     com.example.dianping.service: debug
+
+my:
+  redisson:
+    redis-address: ${REDIS_ADDR}
+    redis-password: ${spring.redis.password}
