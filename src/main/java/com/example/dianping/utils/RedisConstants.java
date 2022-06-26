@@ -27,4 +27,7 @@ public class RedisConstants {
 
     // 分布式锁相关
     public static final String LOCK_KEY_PREFIX = "dp:lock:";
+
+    // 秒杀优惠券相关
+    public static final String STOCK_KEY_PREFIX = "dp:voucher:stock:";
 }

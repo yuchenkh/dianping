@@ -26,6 +26,13 @@ public class VoucherOrder implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public VoucherOrder(Long id, Long userId, Long voucherId) {
+        this.id = id;
+        this.userId = userId;
+        this.voucherId = voucherId;
+        this.payTime = LocalDateTime.now();
+    }
+
     /**
      * 主键
      */

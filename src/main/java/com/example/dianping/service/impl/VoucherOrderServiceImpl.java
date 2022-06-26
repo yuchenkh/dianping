@@ -1,7 +1,6 @@
 package com.example.dianping.service.impl;
 
 import com.example.dianping.dto.Result;
-import com.example.dianping.entity.LimitedVoucher;
 import com.example.dianping.entity.VoucherOrder;
 import com.example.dianping.mapper.VoucherOrderMapper;
 import com.example.dianping.service.ILimitedVoucherService;
@@ -11,14 +10,18 @@ import com.example.dianping.utils.UIDGenerator;
 import com.example.dianping.utils.UserHolder;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
-import static com.example.dianping.utils.RedisConstants.LOCK_KEY_PREFIX;
+import javax.annotation.PostConstruct;
+import java.util.Collections;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
@@ -36,81 +39,111 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private final UIDGenerator uidGenerator;
 
     /**
-     * Redisson Client
+     * RedisTemplate
      */
-    private final RedissonClient redissonClient;
+    private final StringRedisTemplate redisTemplate;
 
     /**
-     * 下单秒杀券
+     * Lua 脚本，用于判断用户是否有购买某张秒杀优惠券资格
+     */
+    private static final DefaultRedisScript<Long> CHECKING_SCRIPT;
+
+    /**
+     * 待创建的订单队列
+     */
+    private static final BlockingQueue<VoucherOrder> ORDERS = new ArrayBlockingQueue<>(1 << 20);
+
+    /**
+     * 线程池，其实只有一个线程负责所有订单的创建。
+     */
+    private static final ExecutorService ORDER_HANDLER = Executors.newSingleThreadExecutor();
+
+    /**
+     * 在依赖完成注入之后进行初始化，向线程池提交任务，不断从任务队列中领取待创建的订单，添加至 MySQL 中。
+     */
+    @PostConstruct
+    private void init() {
+        ORDER_HANDLER.submit(() -> {
+           while (true) {
+               try {
+                   VoucherOrder order = ORDERS.take();
+                   saveOrder(order);
+               } catch (InterruptedException e) {
+                   log.error("从任务队列中取待添加的订单时被打断。");
+               }
+           }
+        });
+    }
+
+    static {
+        CHECKING_SCRIPT = new DefaultRedisScript<>();
+        CHECKING_SCRIPT.setLocation(new ClassPathResource("script/stockAndOrderChecking.lua"));      // 导入 Lua 脚本
+        CHECKING_SCRIPT.setResultType(Long.class);
+    }
+
+
+    /**
+     * <p>下单秒杀券。</p>
+     * <p>方法首先使用 Lua 脚本在 Redis 中查询优惠券的库存以及该用户是否是第一次购买该优惠券。
+     * 如果满足购买条件，则生成订单 ID，将创建订单的任务加入至任务队列并告知用户下单成功，在 MySQL 中创建订单的任务将由 {@link ExecutorService} 中的线程异步完成。</p>
+     * <p>分析一下这个方法的涉及到的共享「状态」：Redis 中的库存信息、优惠券的购买人信息。都存在 "check-then-act" 的竞态条件。但是放在 Lua 脚本中就避免了线程安全性问题。</p>
+     *
      * @param voucherId 优惠券 ID
      * @return          购买结果，下单成功则返回订单号，否则提示购买失败
      */
     @Override
     public Result purchaseLimitedVoucher(Long voucherId) {
-        LimitedVoucher voucher = limitedVoucherService.getById(voucherId);              // 查询该秒杀券的库存、开放购买时间以及结束购买时间
-        if (voucher == null) {
-            return Result.fail("优惠券不存在");
-        } else if (voucher.getBeginTime().isAfter(LocalDateTime.now())) {
-            return Result.fail("优惠券购买还未开放");
-        } else if (voucher.getEndTime().isBefore(LocalDateTime.now())) {
-            return Result.fail("优惠券活动已结束");
-        } else if (voucher.getStock() < 1) {
+        Long userId = UserHolder.getUser().getId();
+        Long result = redisTemplate.execute(CHECKING_SCRIPT,
+                Collections.emptyList(),
+                voucherId.toString(),
+                userId.toString());                // 在 Redis 中执行 Lua 脚本能够保证脚本中操作的原子性，因此之前的同步机制这里不再需要了
+        log.debug("使用 Lua 脚本在 Redis 中进行查询，判断用户是否具有购买资格。");
+        assert result != null;
+        if (result.intValue() == 1) {
             log.debug("有用户用户尝试下单 {} 号优惠券，但是库存不足", voucherId);
-            return Result.fail("优惠券已抢光");
+            return Result.fail("优惠券已被抢光");
         }
-        return createOrder(voucherId);          // 尝试下单
+        if (result.intValue() == 2) {
+            return Result.fail("请勿重复下单");
+        }
+        long orderId = uidGenerator.nextId("order");        // 订单号
+        VoucherOrder newOrder = new VoucherOrder(orderId, userId, voucherId);       // 订单实体，代表要创建的订单
+        try {
+            ORDERS.put(newOrder);        // 将修改 MySQL 创建订单的任务加入任务队列
+            log.debug("用户 {} 购买优惠券 {} 成功，订单号：{}。将订单加入队列等待另一线程异步完成添加。", userId, voucherId, orderId);
+        } catch (InterruptedException e) {
+            log.error("将创建订单任务加入至任务队列时被中断。");
+        }
+
+        return Result.ok(orderId);          // 直接返回响应，告知用户购买成功，提供订单号
     }
 
 
     /**
-     * <p>提供优惠券 ID，创建订单。</p>
-     * <p>该方法会先确定当前线程对应的用户，然后在 MySQL 中查询该用户对该优惠券的购买记录，如未购买过则减去库存并下单，否则下单失败。</p>
-     * <p>MySQL 中 "用户 U1 购买优惠券 V1 的订单数" 这个数据由多个线程共享，而秒杀券同一用户仅限购买一张，
-     * 为防止同一用户使用多线程购买同一优惠券单的线程安全性问题，下单操作必须有适当的同步机制。
-     * 这里我们使用 Redisson 提供的分布式锁。</p>
-     *
-     * @param voucherId 优惠券 ID
-     * @return 表示创建订单成功与否的 {@link Result} 实例
+     * 将订单保存至 MySQL。
+     * @param order 订单
      */
     @Transactional
-    public Result createOrder(Long voucherId) {
-        Long userId = UserHolder.getUser().getId();
-        // 获取分布式锁，让相同 userId 和 voucherId 的线程串行执行下面的逻辑
-        String lockName = LOCK_KEY_PREFIX + "order:v" + voucherId + ":u" + userId;         // 针对于「查询某一用户对某一优惠券所下过的订单」这一操作，申请的锁的 key
-        RLock lock = redissonClient.getLock(lockName);       // 获取对应于这个用户和这个优惠券的组合的锁（锁机制由 Redisson 提供）
-        boolean acquired = lock.tryLock();          // 以默认方式尝试获取锁（如果锁目前被其他线程持有则立即返回 false）
-        if (!acquired) {
-            log.debug("当前线程获取分布式锁 (Redisson) 失败，锁名称：{}", lockName);
-            return Result.fail("请勿重复下单");          // 获取锁失败则说明此时此刻还有一个线程（对应该用户）在对同一优惠券下单
+    public void saveOrder(VoucherOrder order) {
+        Long userId = order.getUserId();
+        Long voucherId = order.getVoucherId();
+        Long count = query().eq("user_id", userId)
+                .eq("voucher_id", voucherId)
+                .count();
+        if (count > 0) {
+            log.error("MySQL 中已经存在用户 {} 购买优惠券 {} 的订单，Redis 和 MySQL 的数据出现不一致", userId, voucherId);           // 按理说是不会出现这种情况的
+            return;
         }
-        log.debug("当前线程获取分布式锁 (Redisson) 成功，锁名称：{}", lockName);
-        try {
-            Long count = query().eq("user_id", userId)      // 在 MySQL 查询该用户购买该优惠券的订单数，这一步骤是判断用户能否去尝试减库存的关卡。
-                    .eq("voucher_id", voucherId)
-                    .count();
-            if (count > 0) {
-                return Result.fail("该优惠券限一人购买一张，您已购买过");
-            }
-            boolean result = limitedVoucherService.update()         // 减库存
-                    .setSql("stock = stock - 1")
-                    .eq("voucher_id", voucherId)
-                    .gt("stock", 0)         // 乐观锁的思想
-                    .update();
-            if (!result) {
-                log.debug("{} 号用户尝试下单，但是库存不足", userId);
-                return Result.fail("库存不足");
-            }
-            VoucherOrder order = new VoucherOrder();            // 在 MySQL 中创建订单
-            Long uid = uidGenerator.nextId("order");        // 订单分配到的 ID
-            order.setId(uid);
-            order.setVoucherId(voucherId);
-            order.setPayTime(LocalDateTime.now());
-            order.setUserId(userId);          // 用户信息到当前线程关联的 UserHolder 中取
-            save(order);
-            log.debug("用户 {} 成功购买了一张 {} 号优惠券，订单号：{}", userId, voucherId, uid);
-            return Result.ok(uid);
-        } finally {
-            lock.unlock();          // 释放锁
+        boolean result = limitedVoucherService.update()         // 减库存
+                .setSql("stock = stock - 1")
+                .eq("voucher_id", voucherId)
+                .gt("stock", 0)         // 乐观锁的思想
+                .update();
+        if (!result) {
+            log.error("MySQL 中显示库存不足，Redis 和 MySQL 中的数据出现不一致");
+            return;
         }
+        save(order);
     }
 }
