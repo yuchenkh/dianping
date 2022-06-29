@@ -14,20 +14,19 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedissonConfig {
 
-    @Value("${my.redisson.redis-address}")
-    private String address = "redis://101.35.16.16:6379";
-
-    @Value("${my.redisson.redis-password}")
-    private String password = "yc8234636";
-
-    @Bean
-    public RedissonClient redissonClient() {
-        Config config = new Config();
-        config.useSingleServer()
-                .setAddress(address)
-                .setPassword(password);
-
-        return Redisson.create(config);
-
-    }
+//    @Value("${my.redisson.redis-address}")
+//    private String address = "redis://101.35.16.16:6379";
+//
+//    @Value("${my.redisson.redis-password}")
+//    private String password = "yc8234636";
+//
+//    @Bean
+//    public RedissonClient redissonClient() {
+//        Config config = new Config();
+//        config.useSingleServer()
+//                .setAddress(address)
+//                .setPassword(password);
+//
+//        return Redisson.create(config);
+//    }
 }

@@ -30,4 +30,7 @@ public class RedisConstants {
 
     // 秒杀优惠券相关
     public static final String STOCK_KEY_PREFIX = "dp:voucher:stock:";
+    public static final String BUYER_LIST_KEY_PREFIX = "dp:voucher:buyer-list:";
+    public static final String ORDER_QUEUE_KEY = "dp:voucher:orders";
+
 }
