@@ -31,6 +31,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/shop-type/**",
                         "/voucher/**",
                         "/blog/hot",
+                        "/blog/detail/**",
+                        "/blog/likes/**",
                         "/user/code",
                         "/user/login"
                 )

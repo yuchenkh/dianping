@@ -33,4 +33,7 @@ public class RedisConstants {
     public static final String BUYER_LIST_KEY_PREFIX = "dp:voucher:buyer-list:";
     public static final String ORDER_QUEUE_KEY = "dp:voucher:orders";
 
+    // 点赞相关
+    public static final String BLOG_LIKED_BY_KEY = "dp:blog:liked-by:";
+
 }
