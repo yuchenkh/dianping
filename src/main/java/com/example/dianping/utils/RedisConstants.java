@@ -2,38 +2,42 @@ package com.example.dianping.utils;
 
 /**
  * Redis 相关常量。最后编辑于：2022-4-25。
+ *
  * @author yuchen
  */
-public class RedisConstants {
+public interface RedisConstants {
 
     // 手机登录验证码相关
-    public static final String PIN_KEY_PREFIX = "dp:login:pin:";
-    public static final Long PIN_TTL = 2L;
+    String PIN_KEY_PREFIX = "dp:login:pin:";
+    Long PIN_TTL = 2L;
 
     // 已登录用户相关
-    public static final String LOGGED_IN_USER_PREFIX = "dp:logged-in-user:";
-    public static final Long LOGGED_IN_USER_TTL = 30L;
+    String LOGGED_IN_USER_PREFIX = "dp:logged-in-user:";
+    Long LOGGED_IN_USER_TTL = 30L;
 
     // 商户信息缓存相关
-    public static final String SHOP_KEY_PREFIX = "dp:cache:shop:";
-    public static final String SHOP_LOCK_KEY_PREFIX = "dp:lock:shop:";      // 写入商户信息的缓存的锁
-    public static final String HOT_KEY_PREFIX = "dp:hotkey:shop:";
-    public static final Long SHOP_CACHE_TTL = 30L;
-    public static final Long NULL_CACHE_TTL = 2L;
-    public static final Long SHOP_LOCK_TTL = 1L;
+    String SHOP_KEY_PREFIX = "dp:cache:shop:";
+    String SHOP_LOCK_KEY_PREFIX = "dp:lock:shop:";      // 写入商户信息的缓存的锁
+    String HOT_KEY_PREFIX = "dp:hotkey:shop:";
+    Long SHOP_CACHE_TTL = 30L;
+    Long NULL_CACHE_TTL = 2L;
+    Long SHOP_LOCK_TTL = 1L;
 
     // 商户类别相关
-    public static final String SHOP_TYPES_KEY = "dp:cache:shop-types";
+    String SHOP_TYPES_KEY = "dp:cache:shop-types";
 
     // 分布式锁相关
-    public static final String LOCK_KEY_PREFIX = "dp:lock:";
+    String LOCK_KEY_PREFIX = "dp:lock:";
 
     // 秒杀优惠券相关
-    public static final String STOCK_KEY_PREFIX = "dp:voucher:stock:";
-    public static final String BUYER_LIST_KEY_PREFIX = "dp:voucher:buyer-list:";
-    public static final String ORDER_QUEUE_KEY = "dp:voucher:orders";
+    String STOCK_KEY_PREFIX = "dp:voucher:stock:";
+    String BUYER_LIST_KEY_PREFIX = "dp:voucher:buyer-list:";
+    String ORDER_QUEUE_KEY = "dp:voucher:orders";
 
     // 点赞相关
-    public static final String BLOG_LIKED_BY_KEY = "dp:blog:liked-by:";
+    String BLOG_LIKED_BY_KEY = "dp:blog:liked-by:";
+
+    // 关注列表相关
+    String FOLLOWING_SET_KEY = "dp:user:following:";
 
 }

@@ -90,4 +90,16 @@ public class BlogController {
         List<Blog> records = page.getRecords();
         return Result.ok(records);
     }
+
+    /**
+     * 分页查询指定用户的所有笔记。
+     * @param userId    用户 ID
+     * @param current   当前页
+     * @return          查询结果
+     */
+    @GetMapping("/of/user")
+    public Result blogByUser(@RequestParam("id") Long userId,
+                             @RequestParam(name = "current", defaultValue = "1") Integer current) {
+        return blogService.blogByUser(userId, current);
+    }
 }

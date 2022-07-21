@@ -12,12 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * <p>
- * 
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-24
+ * 详细的用户信息。
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -82,6 +77,5 @@ public class UserInfo implements Serializable {
      * 更新时间
      */
     private LocalDateTime updateTime;
-
 
 }

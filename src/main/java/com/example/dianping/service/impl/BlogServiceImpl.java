@@ -130,4 +130,18 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 .collect(Collectors.toList());
         return Result.ok(users);
     }
+
+    /**
+     * 分页查询某个用户的所有笔记。
+     * @param userId    用户 ID
+     * @param current   当前页
+     * @return          查询结果
+     */
+    @Override
+    public Result blogByUser(Long userId, Integer current) {
+        List<Blog> blogs = query().eq("user_id", userId)
+                .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE))
+                .getRecords();
+        return Result.ok(blogs);
+    }
 }

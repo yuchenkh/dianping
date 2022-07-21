@@ -26,6 +26,11 @@ public class Follow implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public Follow(Long userId, Long followedUserId) {
+        this.userId = userId;
+        this.followedUserId = followedUserId;
+    }
+
     /**
      * 主键
      */
@@ -33,14 +38,14 @@ public class Follow implements Serializable {
     private Long id;
 
     /**
-     * 用户id
+     * 用户 ID （主体）
      */
     private Long userId;
 
     /**
-     * 关联的用户id
+     * 被关注用户 ID （客体）
      */
-    private Long followUserId;
+    private Long followedUserId;
 
     /**
      * 创建时间
